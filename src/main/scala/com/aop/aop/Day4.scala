@@ -1,72 +1,83 @@
 package com.aop.aop
 
-import scala.util.control.Breaks.{break, breakable}
+import scala.annotation.tailrec
+
 
 object Day4 {
 
-
   def main(args: Array[String]): Unit = {
-    val inputData = readInputFileAsString("src/main/resources/2021/day4-sample.txt")
+    val inputData = readInputFileAsString("src/main/resources/2021/day4.txt")
 
     val generatedNumbers: String = inputData.head
-    val intGenNumbers = generatedNumbers.split(",").map(_.toInt)
+    val intGenNumbers = generatedNumbers.split(",").map(_.toInt).toList
+    val boards = readBoards(inputData.tail.toList)
 
-    val boards = readBoards(inputData.tail)
-    boards.foreach(println)
+    println(s"Solution1 response: ${solution1(intGenNumbers, boards)}")
+  }
 
-    var tmpMap: Map[Int, List[Int]] = Map.empty
+  @tailrec
+  def solution1(numbers: List[Int], grids: List[Board]): Int = {
+    numbers match {
+      case h :: t =>
+        val updated = grids.map(_ + h)
+        val bingo = updated.find(b => b.bingo())
+        if (bingo.isDefined) {
+          val winingBoard = bingo.get
+          println(s"Wining nr: $h")
+          val sum = winingBoard.score()
+          println(s"Wining board sum is: $sum")
+          sum * h
+        } else {
+          solution1(t, updated)
+        }
+      case Nil => throw new IllegalArgumentException("No bingo!")
+    }
 
-   var winningCombinations: List[(Int, Int)] = List.empty
-     breakable {
-      for (extractedNr <- intGenNumbers) {
-        for (board <- boards) {
-          for (row <- board) {
-            if (row.contains(extractedNr)) {
-              updateTmpMap(extractedNr, board)
-              if (checkForBingo(board, extractedNr, board.indexOf(row), boards.indexOf(board))) {
-                winningCombinations =  (extractedNr -> boards.indexOf(board)) :: winningCombinations
-                break
-              }
-            }
+  }
+
+  def readBoards(inputBoards: List[String]): List[Board] = {
+    inputBoards.sliding(6, 6)
+      .map(l => l.filter(_.nonEmpty)
+        .map(_.split(" ").toList.filter(_.nonEmpty).map(_.toInt)))
+      .map(new Board(_))
+      .toList
+
+  }
+
+  class Board(private val rows: List[List[(Int, Boolean)]], private val columns: List[List[(Int, Boolean)]]) {
+
+    def this(numbers: List[List[Int]]) {
+      this(numbers.map(row => row.map((_, false))), numbers.map(row => row.map((_, false))).transpose)
+    }
+
+    def bingo(): Boolean = {
+      rows.exists(_.forall(r => r._2)) | columns.exists(_.forall(c => c._2))
+    }
+
+    def score(): Int = {
+      rows.flatMap(r => r.filter(!_._2).map(_._1)).sum
+    }
+
+    def +(h: Int): Board = {
+      def updateNrExtractedInfo(rows: List[List[(Int, Boolean)]]): List[List[(Int, Boolean)]] = {
+        rows.map { r =>
+          r.map { t => {
+            val value = t._1
+            val status = t._2
+            if (!status && value == h) value -> true
+            else value -> status
+          }
           }
         }
       }
+
+      val updatedRows = updateNrExtractedInfo(rows)
+      val updatedColumns = updateNrExtractedInfo(columns)
+      new Board(updatedRows, updatedColumns)
     }
 
-    def updateTmpMap(extractedNr: Int, board: Seq[Seq[Int]]): Unit = {
-      val bordIndex = boards.indexOf(board)
-      if (tmpMap.contains(bordIndex)) {
-        tmpMap += (bordIndex -> (extractedNr :: tmpMap(bordIndex)))
-      } else {
-        tmpMap += (bordIndex -> List.empty)
-      }
+    override def toString: String = {
+      s"Board: $rows \nTransposed Board: $columns"
     }
-
-    def checkForBingo(board: Seq[Seq[Int]], extractedNr: Int, index: Int, boardIndex: Int) = {
-      val row = board(index)
-      val transposeBoard: Seq[Seq[Int]] = board.transpose
-      val transposedRow = transposeBoard(index)
-      val matchAll: Boolean = row.forall(x => tmpMap(boardIndex).contains(x)) | transposedRow.forall(x => tmpMap(boardIndex).contains(x))
-      matchAll
-    }
-
-    println(tmpMap)
-    val (winingNr, winingBoardIndex) = winningCombinations.head
-    val winingBoard = boards(winingBoardIndex)
-    winingBoard.flatten.filter(el => !tmpMap(winingBoardIndex).contains(el)).foreach(println)
-
   }
-
-  def readBoards(inputBoards: Seq[String]): Seq[Seq[Seq[Int]]] = {
-    val boards = inputBoards.filter(_ != "")
-      .flatMap { row =>
-        row.split(" ")
-          .filter(_.nonEmpty)
-          .map(_.toInt)
-      }.sliding(5, 5)
-      .grouped(5)
-      .toSeq
-    boards
-  }
-
 }
