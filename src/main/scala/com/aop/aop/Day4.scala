@@ -13,6 +13,7 @@ object Day4 {
     val boards = readBoards(inputData.tail.toList)
 
     println(s"Solution1 response: ${solution1(intGenNumbers, boards)}")
+    println(s"Solution2 response: ${solution2(intGenNumbers, boards)}")
   }
 
   @tailrec
@@ -35,6 +36,27 @@ object Day4 {
 
   }
 
+  @tailrec
+  def solution2(numbers: List[Int], grids: List[Board]): Int = {
+    numbers match {
+      case h :: t =>
+        val updated = grids.map(_ + h)
+        if (updated.size > 1) {
+          val filtered = updated.filter(b => !b.bingo())
+          solution2(t, filtered)
+        } else {
+          if (updated.head.bingo()) {
+            updated.head.score() * h
+          } else {
+            solution2(t, updated)
+          }
+        }
+
+      case Nil => throw new IllegalArgumentException("No bingo!")
+    }
+
+  }
+
   def readBoards(inputBoards: List[String]): List[Board] = {
     inputBoards.sliding(6, 6)
       .map(l => l.filter(_.nonEmpty)
@@ -51,7 +73,7 @@ object Day4 {
     }
 
     def bingo(): Boolean = {
-      rows.exists(_.forall(r => r._2)) | columns.exists(_.forall(c => c._2))
+        rows.exists(_.forall(r => r._2)) | columns.exists(_.forall(c => c._2))
     }
 
     def score(): Int = {

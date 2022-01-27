@@ -4,7 +4,7 @@ ThisBuild / scalaVersion := "2.13.7"
 
 lazy val root = (project in file("."))
   .settings(
-    name := "AdventureOfCode-Scala"
+    name := "AdventOfCode-Scala"
   )
 
 libraryDependencies ++= Seq(
