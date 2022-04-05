@@ -1,7 +1,6 @@
-package com.aop.aop
+package com.aop.aop._2021.aop
 
 import scala.annotation.tailrec
-
 
 object Day4 {
 
@@ -73,7 +72,7 @@ object Day4 {
     }
 
     def bingo(): Boolean = {
-        rows.exists(_.forall(r => r._2)) | columns.exists(_.forall(c => c._2))
+      rows.exists(_.forall(r => r._2)) | columns.exists(_.forall(c => c._2))
     }
 
     def score(): Int = {

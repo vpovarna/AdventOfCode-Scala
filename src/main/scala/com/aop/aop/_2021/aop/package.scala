@@ -1,10 +1,9 @@
-package com.aop
+package com.aop.aop._2021
 
 import java.io.File
 import scala.io.Source
 
 package object aop {
-
   def readInputFileAsInt(filePath: String): Seq[Int] = {
     readFile(filePath).map(_.toInt).toSeq
   }
@@ -28,5 +27,4 @@ package object aop {
     }
     open(filePath).read
   }
-
 }
