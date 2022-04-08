@@ -1,4 +1,4 @@
-package com.aop.aop._2021.aop
+package com._2021.aop
 
 object Day2 {
 
