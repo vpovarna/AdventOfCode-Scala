@@ -11,27 +11,24 @@ object Day2 {
 
   case class Row(lowerBound: Int, upperBound: Int, char: Char, password: String)
 
-  def solution(rows: List[String], passwordValidator: Row => Int): Int = {
+  def solution(rows: List[String], passwordValidator: Row => Boolean): Int = {
     rows
       .filter(_.nonEmpty)
       .map(rowParser)
-      .foldLeft(0) { (count, row) =>
-        count + passwordValidator(row)
-      }
+      .count((row: Row) => passwordValidator(row))
   }
 
-  private val part1PasswordValidation: Row => Int = { row =>
-    if (row.lowerBound <= getTheNumberOfChar(row.password, row.char)
-      && getTheNumberOfChar(row.password, row.char) <= row.upperBound) 1
-    else 0
+  private val part1PasswordValidation: Row => Boolean = {
+    case Row(lowerBound, upperBound, char, password) =>
+      (lowerBound <= getTheNumberOfChar(password, char)
+        && getTheNumberOfChar(password, char) <= upperBound)
   }
 
-  private val part2PasswordValidation: Row => Int = { row =>
-    val char = row.char
-    val password = row.password
-    if (password(row.lowerBound - 1) == char && password(row.upperBound - 1) != char) 1
-    else if (password(row.lowerBound - 1) != char && password(row.upperBound - 1) == char) 1
-    else 0
+  private val part2PasswordValidation: Row => Boolean = {
+    case Row(lowerBound, upperBound, char, password) =>
+      if (password(lowerBound - 1) == char && password(upperBound - 1) != char) true
+      else if (password(lowerBound - 1) != char && password(upperBound - 1) == char) true
+      else false
   }
 
   private def getTheNumberOfChar(str: String, c: Char): Int = {
